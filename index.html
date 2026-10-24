@@ -133,7 +133,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
 
-    ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+    
 
     // 床の描画（緑色）
     ctx.fillStyle = '#2E8B57';
@@ -145,7 +145,7 @@
 
     // プレイヤーの描画（赤色）※ここに画像を差し替え可能
     ctx.fillStyle = '#FF4500';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
   }
 
   // === 紙芝居（サプライズ）パート ===
