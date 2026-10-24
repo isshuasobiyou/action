@@ -63,6 +63,9 @@
   const playerImg = new Image();
   playerImg.src = 'moko.png';
 
+  const chestImg = new Image();
+  chestImg.src = 'chest.png'
+
   // 足場設定：下からジグザグに登れるように配置
   const platforms = [
     { x: 100, y: canvas.height - 80, width: 90, height: 15 },
@@ -166,7 +169,7 @@
 
     // 宝箱の描画
     ctx.fillStyle = '#FFD700';
-    ctx.fillRect(chest.x, chest.y, chest.width, chest.height);
+    ctx.drawImage(chestImg, chest.y, chest.width, chest.height);
 
     // プレイヤーの描画
     ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);  
