@@ -142,8 +142,8 @@
     // 足場の当たり判定
     platforms.forEach(p => {
         if (player.dy > 0 && 
-            player.x < p.x + p.width && 
-            player.x + player.width> p.x && 
+            player.x +30< p.x + p.width && 
+            player.x + player.width > p.x && 
             player.y + player.height > p.y && 
             player.y + player.height < p.y + player.dy + 10) {
         player.y = p.y - player.height;
@@ -176,7 +176,7 @@
     }
     // プレイヤーの描画
     if (playerImg.complete && playerImg.naturalWidth > 0) {
-      ctx.drawImage(playerImg, player.x, player.y - 25, player.width + 30, player.height + 30   );  
+      ctx.drawImage(playerImg, player.x, player.y - 25, player.width+30, player.height+30);  
     } else {
       ctx.fillStyle = '#FF4500'; // 画像がない場合は赤い四角
       ctx.fillRect(player.x, player.y, player.width, player.height);
@@ -185,9 +185,9 @@
 
   // === 紙芝居パート ===
   const slides = [
-    { img: 'chest_open.png', test: '宝箱を発見した'}
-    { img: 'chest_open.png', test: '宝箱を発見した'}
-    { img: 'chest_open.png', test: '宝箱を発見した'}
+    { img: 'chest_open.png', test: '宝箱を発見した'},
+    { img: 'chest_open.png', test: '宝箱を発見した'},
+    { img: 'chest_open.png', test: '宝箱を発見した'},
     { img: 'ticket_hint.png', text: '何かが入っている' },
     { img: 'disney_ticket.png', text: 'ディズニーチケットを手に入れた!' }   
   ];
