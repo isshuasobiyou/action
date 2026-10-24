@@ -51,7 +51,8 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - 120; // ボタンの分を引く
   }
-  window.addEventListener('resize', resize);
+  // スマホのスクロールによるレイアウト崩れを防ぐため、resizeイベントは外して初期サイズで固定します
+  // window.addEventListener('resize', resize);
   resize();
 
   // プレイヤー設定
@@ -64,9 +65,9 @@
   const playerImg = new Image();
   playerImg.src = 'moko.png';
 
-  // 宝箱（ゴール）設定
+  // 宝箱（ゴール）設定：床の10px分を引いて沈み込みを解消
   const chest = {
-    x: canvas.width - 80, y: canvas.height - 40, width: 40, height: 40
+    x: canvas.width - 80, y: canvas.height - 50, width: 40, height: 40
   };
 
   const platforms = [
@@ -111,9 +112,9 @@
     player.x += player.dx;
     player.y += player.dy;
 
-    // 床の当たり判定
-    if (player.y + player.height >= canvas.height) {
-      player.y = canvas.height - player.height;
+    // 床の当たり判定：床の厚さ(10px)を考慮して修正
+    if (player.y + player.height >= canvas.height - 10) {
+      player.y = canvas.height - 10 - player.height;
       player.dy = 0;
       player.grounded = true;
     }
@@ -152,17 +153,15 @@
     ctx.fillStyle = '#8B4513'; // 茶色
     platforms.forEach(p => ctx.fillRect(p.x, p.y, p.width, p.height));
     
-
     // 床の描画（緑色）
     ctx.fillStyle = '#2E8B57';
     ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
 
-    // 宝箱の描画（黄色）※ここに画像を差し替え可能
+    // 宝箱の描画（黄色）
     ctx.fillStyle = '#FFD700';
     ctx.fillRect(chest.x, chest.y, chest.width, chest.height);
 
-    // プレイヤーの描画（赤色）※ここに画像を差し替え可能
-    ctx.fillStyle = '#FF4500';
+    // プレイヤーの描画
     ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);  
   }
 
@@ -194,7 +193,6 @@
   }
 
   function showSlide() {
-    // 画像がまだ用意されていない場合は色付きの四角で代用表示されます
     const imgEl = document.getElementById('slideshow-img');
     imgEl.src = slides[currentSlide].img;
     imgEl.alt = "画像準備中: " + slides[currentSlide].img;
