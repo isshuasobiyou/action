@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>サプライズゲーム</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: sans-serif; }
+  #game-container { display: flex; flex-direction: column; height: 100vh; }
+  canvas { flex: 1; width: 100%; display: block; }
+  
+  /* スマホ用操作ボタン */
+  #controls { height: 100px; display: flex; justify-content: space-between; background: #222; padding: 10px; gap: 10px; }
+  .btn { flex: 1; background: #444; color: white; font-size: 24px; font-weight: bold; border: none; border-radius: 10px; user-select: none; }
+  .btn:active { background: #666; }
+  .btn-group { display: flex; flex: 2; gap: 10px; }
+  .btn-jump { flex: 1; }
+
+  /* 紙芝居パート */
+  #slideshow-container { display: none; width: 100vw; height: 100vh; background: #111; flex-direction: column; justify-content: center; align-items: center; color: white; cursor: pointer; }
+  #slideshow-img { max-width: 90%; max-height: 70vh; object-fit: contain; margin-bottom: 20px; }
+  #slideshow-text { font-size: 20px; text-align: center; padding: 0 20px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<!-- ゲーム画面 -->
+<div id="game-container">
+  <canvas id="gameCanvas"></canvas>
+  <div id="controls">
+    <div class="btn-group">
+      <button class="btn" id="leftBtn">◀</button>
+      <button class="btn" id="rightBtn">▶</button>
+    </div>
+    <button class="btn btn-jump" id="jumpBtn">JUMP</button>
+  </div>
+</div>
+
+<!-- 紙芝居（サプライズ）画面 -->
+<div id="slideshow-container">
+  <img id="slideshow-img" src="" alt="サプライズ画像">
+  <div id="slideshow-text">宝箱を開けた！<br>（タップして次へ）</div>
+</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  // 画面サイズ調整
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - 120; // ボタンの分を引く
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // プレイヤー設定
+  const player = {
+    x: 50, y: 100, width: 30, height: 30,
+    dx: 0, dy: 0, speed: 4, jumpPower: -12,
+    grounded: false
+  };
+
+  // 宝箱（ゴール）設定
+  const chest = {
+    x: canvas.width - 80, y: canvas.height - 40, width: 40, height: 40
+  };
+
+  const gravity = 0.6;
+  let isGameOver = false;
+
+  // ボタン操作のフラグ
+  let leftPressed = false;
+  let rightPressed = false;
+
+  // ボタンイベント（スマホのタッチ対応）
+  const addTouch = (id, downStr, upStr, actionDown, actionUp) => {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); actionDown(); }, {passive: false});
+    el.addEventListener('touchend', (e) => { e.preventDefault(); actionUp(); }, {passive: false});
+    el.addEventListener('mousedown', actionDown);
+    el.addEventListener('mouseup', actionUp);
+    el.addEventListener('mouseleave', actionUp);
+  };
+
+  addTouch('leftBtn', 'touchstart', 'touchend', () => leftPressed = true, () => leftPressed = false);
+  addTouch('rightBtn', 'touchstart', 'touchend', () => rightPressed = true, () => rightPressed = false);
+  addTouch('jumpBtn', 'touchstart', 'touchend', () => {
+    if (player.grounded) { player.dy = player.jumpPower; player.grounded = false; }
+  }, () => {});
+
+  // ゲームループ
+  function update() {
+    if (isGameOver) return;
+
+    // 左右移動
+    if (leftPressed) player.dx = -player.speed;
+    else if (rightPressed) player.dx = player.speed;
+    else player.dx = 0;
+
+    // 重力と位置更新
+    player.dy += gravity;
+    player.x += player.dx;
+    player.y += player.dy;
+
+    // 床の当たり判定
+    if (player.y + player.height >= canvas.height) {
+      player.y = canvas.height - player.height;
+      player.dy = 0;
+      player.grounded = true;
+    }
+
+    // 画面端の壁
+    if (player.x < 0) player.x = 0;
+    if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+    // 宝箱との当たり判定 (AABB)
+    if (player.x < chest.x + chest.width &&
+        player.x + player.width > chest.x &&
+        player.y < chest.y + chest.height &&
+        player.y + player.height > chest.y) {
+      triggerSurprise();
+    }
+
+    draw();
+    requestAnimationFrame(update);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 床の描画（緑色）
+    ctx.fillStyle = '#2E8B57';
+    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+
+    // 宝箱の描画（黄色）※ここに画像を差し替え可能
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(chest.x, chest.y, chest.width, chest.height);
+
+    // プレイヤーの描画（赤色）※ここに画像を差し替え可能
+    ctx.fillStyle = '#FF4500';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+  }
+
+  // === 紙芝居（サプライズ）パート ===
+  const slides = [
+    { img: 'chest_open.jpg', text: 'おや…？ 宝箱の中に何か入っているぞ！' },
+    { img: 'ticket_hint.jpg', text: 'これは……もしかして……！？' },
+    { img: 'disney_ticket.jpg', text: 'ディズニーチケットをゲット！<br>一緒に行こう！！' }
+  ];
+  let currentSlide = 0;
+
+  function triggerSurprise() {
+    isGameOver = true;
+    document.getElementById('game-container').style.display = 'none';
+    const slideContainer = document.getElementById('slideshow-container');
+    slideContainer.style.display = 'flex';
+    
+    showSlide();
+
+    // 画面タップで次のスライドへ
+    slideContainer.addEventListener('click', () => {
+      currentSlide++;
+      if (currentSlide < slides.length) {
+        showSlide();
+      } else {
+        document.getElementById('slideshow-text').innerHTML = "サプライズ大成功！🎉";
+      }
+    });
+  }
+
+  function showSlide() {
+    // 画像がまだ用意されていない場合は色付きの四角で代用表示されます
+    const imgEl = document.getElementById('slideshow-img');
+    imgEl.src = slides[currentSlide].img;
+    imgEl.alt = "画像準備中: " + slides[currentSlide].img;
+    
+    document.getElementById('slideshow-text').innerHTML = slides[currentSlide].text;
+  }
+
+  // ゲーム開始
+  update();
+</script>
+</body>
+</html>
