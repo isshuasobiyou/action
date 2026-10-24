@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>サプライズゲーム</title>
+<title>ミニゲーム</title>
 <style>
   body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: sans-serif; }
   #game-container { display: flex; flex-direction: column; height: 100vh; }
@@ -20,9 +20,36 @@
   #slideshow-container { display: none; width: 100vw; height: 100vh; background: #111; flex-direction: column; justify-content: center; align-items: center; color: white; cursor: pointer; }
   #slideshow-img { max-width: 90%; max-height: 70vh; object-fit: contain; margin-bottom: 20px; }
   #slideshow-text { font-size: 20px; text-align: center; padding: 0 20px; line-height: 1.5; }
+
+  /* スタート画面 */
+  #start-screen {
+    position: absolute;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer;
+  }
+  #start-screen h1 {
+    font-size: 32px;
+    margin: 0;
+    animation: blink 1.5s infinite; /* ふわふわ点滅させる */
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
 </style>
 </head>
 <body>
+
+<!-- スタート画面 -->
+<div id="start-screen">
+  <h1>TAP TO START</h1>
+</div>
 
 <!-- ゲーム画面 -->
 <div id="game-container">
@@ -64,7 +91,7 @@
   playerImg.src = 'moko.png';
 
   const chestImg = new Image();
-  chestImg.src = 'chest.png'
+  chestImg.src = 'chest.png';
 
   // 足場設定：下からジグザグに登れるように配置
   const platforms = [
@@ -85,6 +112,7 @@
 
   const gravity = 0.6;
   let isGameOver = false;
+  let gameStarted = false; // スタート画面用のフラグ
 
   // ボタン操作のフラグ
   let leftPressed = false;
@@ -106,9 +134,21 @@
     if (player.grounded) { player.dy = player.jumpPower; player.grounded = false; }
   }, () => {});
 
+  // === スタート画面の処理 ===
+  const startScreen = document.getElementById('start-screen');
+  const startGame = (e) => {
+    if (gameStarted) return;
+    if (e) e.preventDefault();
+    gameStarted = true;
+    startScreen.style.display = 'none'; // スタート画面を消す
+    update(); // ここで初めてゲームループを開始
+  };
+  startScreen.addEventListener('mousedown', startGame);
+  startScreen.addEventListener('touchstart', startGame, {passive: false});
+
   // ゲームループ
   function update() {
-    if (isGameOver) return;
+    if (isGameOver || !gameStarted) return;
 
     // 左右移動
     if (leftPressed) player.dx = -player.speed;
@@ -142,7 +182,7 @@
     // 足場の当たり判定
     platforms.forEach(p => {
         if (player.dy > 0 && 
-            player.x +30< p.x + p.width && 
+            player.x +30 < p.x + p.width && 
             player.x + player.width > p.x && 
             player.y + player.height > p.y && 
             player.y + player.height < p.y + player.dy + 10) {
@@ -185,10 +225,11 @@
 
   // === 紙芝居パート ===
   const slides = [
-    { img: 'chest_open.png', test: '宝箱を発見した'},
-    { img: 'chest_open.png', test: '宝箱を発見した'},
-    { img: 'chest_open.png', test: '宝箱を発見した'},
-    { img: 'ticket_hint.png', text: '何かが入っている' },
+    { img: 'chest_open.png', text: '宝箱を発見した'},
+    { img: 'chest_open.png', text: '宝箱を発見した'},
+    { img: 'chest_open.png', text: '宝箱を発見した'},
+    { img: 'ticket_hint.png', text: '' },
+    { img: 'disney_ticket.png', text: '' }  ,
     { img: 'disney_ticket.png', text: 'ディズニーチケットを手に入れた!' }   
   ];
   let currentSlide = 0;
@@ -218,7 +259,7 @@
     document.getElementById('slideshow-text').innerHTML = slides[currentSlide].text;
   }
 
-  update();
+  // ※ ここにあった update(); は、スタート画面のタップイベント内に移動しました
 </script>
 </body>
 </html>
