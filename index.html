@@ -143,7 +143,7 @@
     platforms.forEach(p => {
         if (player.dy > 0 && 
             player.x < p.x + p.width && 
-            player.x + player.width > p.x && 
+            player.x + player.width> p.x && 
             player.y + player.height > p.y && 
             player.y + player.height < p.y + player.dy + 10) {
         player.y = p.y - player.height;
@@ -168,11 +168,19 @@
     ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
 
     // 宝箱の描画
-    ctx.fillStyle = '#FFD700';
-    ctx.drawImage(chestImg, chest.y, chest.width, chest.height);
-
+    if (chestImg.complete && chestImg.naturalWidth > 0) {
+      ctx.drawImage(chestImg, chest.x, chest.y, chest.width, chest.height);
+    } else {
+      ctx.fillStyle = '#FFD700'; // 画像がない場合は黄色の四角（保険）
+      ctx.fillRect(chest.x, chest.y, chest.width, chest.height);
+    }
     // プレイヤーの描画
-    ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);  
+    if (playerImg.complete && playerImg.naturalWidth > 0) {
+      ctx.drawImage(playerImg, player.x, player.y - 25, player.width + 30, player.height + 30   );  
+    } else {
+      ctx.fillStyle = '#FF4500'; // 画像がない場合は赤い四角
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
   }
 
   // === 紙芝居パート ===
